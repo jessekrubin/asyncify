@@ -3,15 +3,16 @@
 
 ...or else...
 """
+from sys import modules
 from asyncio import coroutine
 from asyncio import get_event_loop
 from functools import partial
 from functools import wraps
+from inspect import ismodule, getmembers, isfunction
 from typing import Any
 from typing import Callable
 from typing import TypeVar
 from typing import cast
-
 FuncType = Callable[..., Any]
 F = TypeVar("F", bound=FuncType)
 
@@ -38,8 +39,12 @@ def asyncify(funk: F) -> F:
         pfunc = partial(funk, *args, **kwargs)
         return loop.run_in_executor(executor, pfunc)
 
-    return cast(F, afunk)
+    if ismodule(funk):
+        for fname, f in getmembers(funk, isfunction):
+            setattr(funk, fname+ '_async', asyncify(f))
+    else:
+        return cast(F, afunk)
 
 a = asyncify
-async = async
+aio = asyncify
 
