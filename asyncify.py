@@ -3,7 +3,6 @@
 
 ...or else...
 """
-from sys import modules
 from asyncio import coroutine
 from asyncio import get_event_loop
 from functools import partial
@@ -35,16 +34,16 @@ def asyncify(funk: F) -> F:
         :param kwargs:
         :return:
         """
-        loop = loop if loop else get_event_loop() 
+        loop = loop if loop else get_event_loop()
         pfunc = partial(funk, *args, **kwargs)
         return loop.run_in_executor(executor, pfunc)
 
     if ismodule(funk):
         for fname, f in getmembers(funk, isfunction):
-            setattr(funk, fname+ '_async', asyncify(f))
+            setattr(funk, '{}_async'.format(fname), asyncify(f))
     else:
         return cast(F, afunk)
 
+
 a = asyncify
 aio = asyncify
-
