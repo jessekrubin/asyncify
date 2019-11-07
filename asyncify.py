@@ -7,7 +7,7 @@ from asyncio import coroutine
 from asyncio import get_event_loop
 from functools import partial
 from functools import wraps
-from inspect import ismodule, getmembers, isfunction, isclass, ismethod
+from inspect import ismodule, getmembers, isfunction, isclass, ismethod, isawaitable, iscoroutinefunction, iscoroutine
 from typing import Any
 from typing import Callable
 from typing import TypeVar
@@ -42,24 +42,26 @@ def asyncify(funk: F, functions=True, classes = True) -> F:
         for fname, f in getmembers(funk, isfunction):
             setattr(funk, '{}_async'.format(fname), asyncify(f))
         for fname, f in getmembers(funk, isclass):
-            setattr(funk, '{}_async'.format(fname), asyncify(f))
+            asyncify(f)
+            # setattr(funk, '{}_async'.format(fname), asyncify(f))
     elif isclass(funk):
         print(funk)
         for a, b in funk.__dict__.items():
             print(a, b)
         print(getmembers(funk, predicate=ismethod))
         # print(getmembers(funk))
-        members = [el for el in getmembers(funk) if not el[0].startswith('__') and not el[0].endswith('__')]
+        members = [el for el in getmembers(funk) if not el[0].startswith('__') and not el[0].endswith('__') and not el[0].endswith('_async')]
         print(members)
 
         for mem in members:
-            setattr(funk, '{}_async'.format(mem[0]), asyncify(mem[-1]))
+            setattr(funk, '{}_async'.format(mem[0]), cast(F, mem[-1]))
         members = [el for el in getmembers(funk) if not el[0].startswith('__') and not el[0].endswith('__')]
 
         print(members)
 
         # setattr(funk, '{}_async'.format(fname), asyncify(f))
-    else:
+    elif isfunction(funk) and not funk.__name__.endswith('_async')and  not iscoroutinefunction(funk) and not iscoroutine(funk) and not isawaitable(funk):
+        print("HERE", funk, funk.__name__, isawaitable(funk), iscoroutinefunction(funk))
         return cast(F, afunk)
 
 
