@@ -1,7 +1,10 @@
 import asyncio
-from asyncify import asyncify
-import things
+
 import pytest
+
+import things
+from asyncify import asyncify
+
 print(dir(things))
 asyncify(things)
 
@@ -24,5 +27,3 @@ async def test_asyncify_function():
     rsync = fsync(1, 4)
     rasync = await fasync(1, 4)
     assert rsync == rasync
-
-

@@ -1,5 +1,6 @@
 from os import listdir
 
+
 class ASink:
 
     def __init__(volume):

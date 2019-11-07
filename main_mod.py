@@ -1,7 +1,10 @@
 import asyncio
-from asyncify import asyncify
-import classy
+
 import pytest
+
+import classy
+from asyncify import asyncify
+
 print(dir(classy))
 asyncify(classy)
 
