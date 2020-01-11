@@ -3,31 +3,16 @@
 
 ...or else...
 """
-import functools
-from asyncio import coroutine
-from asyncio import get_event_loop
-from functools import partial
-
-from functools import wraps, update_wrapper
-from inspect import getmembers
-from inspect import isawaitable
-from inspect import isclass
-from inspect import iscoroutine
-from inspect import iscoroutinefunction
-from inspect import isfunction
-from inspect import ismethod
-from inspect import ismodule
-from typing import Any
-from typing import Callable
-from typing import TypeVar
-from typing import cast
-from asyncio import iscoroutinefunction
+from asyncio import coroutine, get_event_loop, iscoroutinefunction
+from functools import partial, update_wrapper, wraps
+from inspect import getmembers, isclass, iscoroutinefunction, isfunction, ismodule
+from typing import Any, Callable, TypeVar, cast
 
 FuncType = Callable[..., Any]
 F = TypeVar("F", bound=FuncType)
 
 class AWeight:
-    """This wraps a coroutine will call it on await."""
+    """Wrap coroutine making it awaitable"""
     __slots__ = ['_funk']
 
     def __init__(self, funk):
@@ -45,8 +30,6 @@ def property_async(func, *args, **kwargs):
         return PropertyAsync(func, *args, **kwargs)
     except AssertionError:
         return PropertyAsync(_asyncify_function(func), *args, **kwargs)
-    # assert iscoroutinefunction(func), 'Can only use with async def'
-    # return PropertyAsync(func, *args, **kwargs)
 
 class PropertyAsync:
     def __init__(self, _fget, field_name=None):
@@ -58,26 +41,15 @@ class PropertyAsync:
         self.field_name = name
 
     def __get__(self, instance, owner):
-        # return self
-        return self if instance is None else self.awaitable_only(instance)
+        return self if instance is None else self.awaitable_funk(instance)
 
     def __set__(self, instance, value):
-        print("crap")
-        # raise ValueError(INVALID_ACTION.format('set'))
-        # raise ValueError(INVALID_ACTION.format('set'))
+        raise NotImplementedError
 
     def __delete__(self, instance):
-        print("crap")
-        # raise ValueError(INVALID_ACTION.format('delete'))
+        raise NotImplementedError
 
-    def get_loader(self, instance):
-        @wraps(self._fget)
-        async def get_value():
-            return await self._fget(instance)
-
-        return get_value
-
-    def awaitable_only(self, instance):
+    def awaitable_funk(self, instance):
         @wraps(self._fget)
         async def get_value():
             return await self._fget(instance)
@@ -85,9 +57,6 @@ class PropertyAsync:
         return AWeight(
             get_value
             )
-
-# class PropertyAsync(property):
-#     pass
 
 def _asyncify_function(funk: F):
     @coroutine
@@ -101,13 +70,6 @@ def _asyncify_function(funk: F):
     return cast(F, _funk_async)
 
 def _asyncify_class(cls: F):
-    # @coroutine
-    # @wraps(cls)
-    # def _funk_async(*args, loop=None, executor=None, **kwargs):
-    #     """WRAPPER"""
-    #     loop = loop if loop else get_event_loop()
-    #     pfunc = partial(funk, *args, **kwargs)
-    #     return loop.run_in_executor(executor, pfunc)
     print("INCLASEE")
     print(cls, dir(cls))
     members = [
