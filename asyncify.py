@@ -24,6 +24,9 @@ class AWeight:
     def __await__(self):
         return self._funk().__await__()
 
+    def __call__(self, *args, **kwargs):
+        return self._funk(*args, **kwargs)
+
 def property_async(func, *args, **kwargs):
     try:
         assert iscoroutinefunction(func)
@@ -110,7 +113,9 @@ def asyncify(funk: F, functions=True, classes=True) -> F:
         return loop.run_in_executor(executor, pfunc)
 
     print("HERE", funk)
-    if ismodule(funk):
+    if iscoroutinefunction(funk):
+        raise ValueError("ALREADY ASYNC; No need to asyncify {} - {}".format(funk, funk.__name__))
+    elif ismodule(funk):
         for fname, f in getmembers(funk, isfunction):
             setattr(funk, "{}_async".format(fname), asyncify(f))
         for fname, f in getmembers(funk, isclass):
@@ -167,6 +172,10 @@ def asyncify(funk: F, functions=True, classes=True) -> F:
         print('=================')
         print(funk, dir(funk))
         return _asyncify_function(funk)
+    else:
+        print("ELSE")
+        return funk
         # return cast(F, afunk)
 
 a = asyncify
+
